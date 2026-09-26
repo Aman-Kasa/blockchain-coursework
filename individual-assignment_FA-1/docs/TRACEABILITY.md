@@ -1,6 +1,6 @@
-# Requirement Traceability Matrix & Final Quality Gate — Phase 10
+# Requirement Traceability Matrix & Final Quality Gate
 
-This is the audit called for by the project plan's Standing Rule 6: no
+This audit follows one rule: no
 fabricated "100% done" claim, no numerical self-score — every rubric
 criterion gets an explicit PASS / NEEDS FIX with a stated reason, and the
 project is only called complete once every requirement in
@@ -55,7 +55,7 @@ against what actually exists in the repository right now, not against intent.
 | Integrity validation | **PASS** | SHA-256 recomputation on every load |
 | Tamper detection | **PASS** | 6 tamper variants, all correctly detected and localized to the right block |
 | Key protection | **PASS** | `keys/` gitignored, owner-only file permissions on the private key |
-| No hard-coded private key | **PASS** | `git grep` for key material in `src/` — none; verified during Phase 8 |
+| No hard-coded private key | **PASS** | `git grep` for key material in `src/` — none; verified during testing |
 
 **Overall: PASS.**
 
@@ -96,7 +96,7 @@ right before recording, so the genesis-creation moment is visible).
 Covered in full in §1.C above. No open security findings. The one defect
 found during this project (an unbounded `strcpy`, safe in practice but
 non-compliant with the project's own "no unsafe functions" rule) was caught
-by a targeted inspection pass in Phase 8, fixed, and the fix is covered by
+by a targeted inspection pass during testing, fixed, and the fix is covered by
 the same 44 tests that already existed — see `docs/REQUIREMENTS.md` R11.2 and
 `docs/REPORT.md` §18.
 
@@ -135,7 +135,7 @@ recording before submitting.
 
 ## 8. Report checklist
 
-All 20 sections from the engineering prompt's outline are present in
+All 20 sections from the outline in `prompt.pdf` are present in
 `docs/REPORT.md`: Introduction, Problem statement, System objectives, System
 architecture, Blockchain implementation, Block structure, Registry system,
 SHA-256 integrity mechanism, ECDSA authentication, Key management,

@@ -1,8 +1,8 @@
-# Requirements Checklist — Phase 1
+# Requirements Checklist
 
-Source of truth: `individual assignment.pdf` (graded spec + rubric). `prompt.pdf` (engineering workflow) cross-checked against it — where they conflict, the assignment PDF wins, per the project plan's Standing Rule 1.
+Source of truth: `individual assignment.pdf` (graded spec + rubric). `prompt.pdf` (engineering workflow) cross-checked against it — where they conflict, the assignment PDF wins (it is the graded document).
 
-Naming note: the assignment's block table uses `Member_name` and calls this an "attendance chain" — both are leftover template wording. This checklist and the implementation use `member_name` and "lending chain" throughout. See the project plan for the full note.
+Naming note: the assignment's block table uses `Member_name` and calls this an "attendance chain" — both are leftover template wording. This checklist and the implementation use `member_name` and "lending chain" throughout. See `docs/REPORT.md` §4 for the full note.
 
 **Verification key**: every `[x]` below is backed by one of:
 - **(test)** — an automated assertion in `tests/run_tests.sh` (`make test`, 44/44 passing)
@@ -107,12 +107,12 @@ Naming note: the assignment's block table uses `Member_name` and calls this an "
 
 ## Ambiguities / risks identified
 
-1. **"Attendance chain" / `Member_name`** — resolved: library lending chain, `member_name` lowercase. (see plan)
+1. **"Attendance chain" / `Member_name`** — resolved: library lending chain, `member_name` lowercase (see `docs/REPORT.md` §4).
 2. **`action[10]` (char array, not `char[10]`)** — spec typo; treated as `char action[10]`, matching every other field's declared style.
-3. **OVERDUE is listed as a valid action but no functional requirement defines when/how it's triggered** — no automatic overdue logic is specified anywhere (no due-date field exists on the block or registries). Resolution: implement `action` as an enum-safe string field that accepts OVERDUE for future extensibility, but do not build automatic overdue detection — it's not a stated requirement and inventing one would violate Standing Rule 3. Documented in the report as an intentionally unimplemented, spec-absent feature.
+3. **OVERDUE is listed as a valid action but no functional requirement defines when/how it's triggered** — no automatic overdue logic is specified anywhere (no due-date field exists on the block or registries). Resolution: implement `action` as an enum-safe string field that accepts OVERDUE for future extensibility, but do not build automatic overdue detection — it's not a stated requirement and inventing one would go beyond the brief. Documented in the report as an intentionally unimplemented, spec-absent feature.
 4. **Signature buffer `unsigned char[72]`** — ECDSA (P-256) DER signatures are variable-length, up to ~72 bytes; stored left-aligned in the fixed buffer with an explicit length tracked separately in memory (`Block.sig_len`), since the struct has no length field. Not persisted or hashed. See `docs/ARCHITECTURE.md`.
 5. **"Digital signatures to authenticate lending actions" vs. rubric "proper use of cryptographic keys"** — implies a persistent ECDSA keypair, stored outside source (in `keys/`), not regenerated per run. Adopted.
 
 ## Status
 
-Phase 8 (testing) is complete: 44/44 automated tests pass (`make test`), covering every R1–R11 item above via test, inspection, or doc reference as marked. All four deliverables (D1–D4) are complete.
+Testing is complete: 44/44 automated tests pass (`make test`), covering every R1–R11 item above via test, inspection, or doc reference as marked. All four deliverables (D1–D4) are complete.
