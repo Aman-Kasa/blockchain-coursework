@@ -3,16 +3,14 @@
 ## Project structure
 
 ```
-aman/
+individual-assignment_FA-1/
 ├── src/
-│   ├── main.c          CLI entry point, command loop
+│   ├── main.c          Entry point: start-up sequence, then hands off to cli_run()
 │   ├── registry.c/.h    Book/Member struct defs, file loading, ID lookup
 │   ├── blockchain.c/.h  Block/chain structs, genesis, append, borrow/return logic, validation
 │   ├── crypto.c/.h      SHA-256 hashing, ECDSA keygen/sign/verify (OpenSSL EVP)
 │   ├── persistence.c/.h Save/load chain to/from disk, corruption detection
 │   └── cli.c/.h         Command parsing, dispatch, user-facing messages
-├── include/             (reserved — currently headers live beside their .c files in src/;
-│                          kept only if a shared cross-module header becomes necessary)
 ├── data/
 │   ├── books.txt
 │   └── members.txt
@@ -35,7 +33,7 @@ aman/
 ## Data structures
 
 - `Book`, `Member` — as specified by the assignment, fixed-size arrays loaded once at startup, not resized at runtime (registries are read-only inputs, not something the program mutates).
-- `Block` — as specified by the assignment (see REQUIREMENTS.md R2.1), plus one in-memory-only field: `size_t sig_len`, needed because ECDSA signatures are variable-length (see REQUIREMENTS.md ambiguity #4) but the spec's block struct has no length field. This field is **not** persisted or hashed — it's derived on load by taking the DER signature up to its own embedded length. Documented here rather than silently added, per Standing Rule 2/9.
+- `Block` — as specified by the assignment (see REQUIREMENTS.md R2.1), plus one in-memory-only field: `size_t sig_len`, needed because ECDSA signatures are variable-length (see REQUIREMENTS.md ambiguity #4) but the spec's block struct has no length field. This field is **not** persisted or hashed — on load it is set to the number of bytes decoded from the hex `signature_hex` field (`crypto_hex_to_bytes()`). Documented here rather than silently added, per Standing Rule 2/9.
 - `Blockchain` — singly linked list of `Block`, per the assignment's design guidance (prompt.pdf §5: "design the blockchain as a linked list"), plus a `size_t length` for O(1) length checks and a tail pointer for O(1) append.
 
 ## Data flow
@@ -75,7 +73,7 @@ Format (one block per line):
 index|timestamp|book_id|book_title|member_id|member_name|action|previous_hash|signature_hex|hash
 ```
 
-On load, each line is split, validated for field count and length limits (R1.8-style defensive parsing extended to the chain file too), and one `Block` is reconstructed per line — a malformed line or a line whose recomputed hash doesn't match is what R5.6/R7.2 report as chain compromise.
+On load, each line is split, validated for field count and length limits (R1.8-style defensive parsing extended to the chain file too), and one `Block` is reconstructed per line. A malformed line makes the load fail as `PERSIST_CORRUPT` (fatal at start-up). The loader does not check hashes or signatures: `main()` runs `blockchain_validate()` straight after a successful load, and a recomputed hash that doesn't match is what R5.6/R7.2 report as chain compromise.
 
 ## Module responsibilities summary
 

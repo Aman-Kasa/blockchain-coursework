@@ -253,8 +253,8 @@ development — not rendered image screenshots, and re-formatted with `$
 command` lines for readability (the actual runs pipe commands into stdin
 non-interactively, so the raw output interleaves differently); the message
 text and ordering below is copied verbatim from the real runs, unedited.
-Image captures for the final submission (and the demo video, which
-supersedes static screenshots anyway) are still outstanding; see Limitations.
+Image screenshots are included in the technical report submitted as
+PDF/Word, and the demo video is submitted separately.
 
 ```
 $ ./lending_tracker
@@ -319,8 +319,14 @@ ERROR: chain integrity check failed at block 1 (stored hash does not match recom
   process operating on the chain file at a time.
 - Private key has no passphrase (simpler for a lab demo; a production system
   would want one).
-- Demo video and rendered image screenshots are not yet produced (see
-  `docs/REQUIREMENTS.md` Deliverables — tracked, not silently dropped).
+- `view records` checks each signature against the block's *stored* hash,
+  so a block whose data was edited (hash untouched) still shows
+  `signature=VALID` there; `validate chain` recomputes the hash and catches it.
+- Deleting the newest block(s) from the end of `data/chain.txt` is not
+  detected, because nothing outside the file records the latest hash or the
+  chain length.
+- A single installation-wide key authenticates blocks; there is no per-user
+  authentication or access control.
 
 ## 20. Conclusion
 
@@ -329,7 +335,5 @@ genesis/borrow/return/validate/view, SHA-256 linking, ECDSA signing, tamper
 detection, file persistence, CLI, defensive error handling), verified by 44
 passing automated tests rather than asserted from a read-through. The one
 spec inconsistency found (attendance-chain wording) was flagged and resolved
-explicitly rather than copied or silently altered. Remaining work is entirely
-in the deliverables layer — pushing the repository, recording the demo video,
-and (optionally) exporting rendered screenshots — not in the implementation
-itself.
+explicitly rather than copied or silently altered. The known limitations
+in §19 are documented rather than hidden.
