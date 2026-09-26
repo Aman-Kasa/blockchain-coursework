@@ -66,7 +66,7 @@ Six modules, each with one responsibility (full rationale in
 | `cli.c/h` | Command parsing, dispatch, user-facing messages |
 | `main.c` | Startup sequence: load registries → load/create chain → validate → run CLI |
 
-This mirrors the project structure suggested in the engineering prompt, with
+This mirrors the project structure suggested in `prompt.pdf`, with
 one deliberate deviation: there is no separate `validation.c` module.
 Validation logic (registry line validation, chain validation) lives directly
 inside the module that owns the data being validated (`registry.c`,

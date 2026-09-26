@@ -1,4 +1,4 @@
-# Architecture — Phase 2
+# Architecture
 
 ## Project structure
 
@@ -15,7 +15,7 @@ individual-assignment_FA-1/
 │   ├── books.txt
 │   └── members.txt
 ├── keys/                ECDSA keypair (PEM), generated once, gitignored
-├── tests/               test scripts / fixtures (Phase 8)
+├── tests/               run_tests.sh — automated test suite
 ├── docs/                REQUIREMENTS.md, ARCHITECTURE.md, report source
 ├── Makefile
 ├── README.md
@@ -33,7 +33,7 @@ individual-assignment_FA-1/
 ## Data structures
 
 - `Book`, `Member` — as specified by the assignment, fixed-size arrays loaded once at startup, not resized at runtime (registries are read-only inputs, not something the program mutates).
-- `Block` — as specified by the assignment (see REQUIREMENTS.md R2.1), plus one in-memory-only field: `size_t sig_len`, needed because ECDSA signatures are variable-length (see REQUIREMENTS.md ambiguity #4) but the spec's block struct has no length field. This field is **not** persisted or hashed — on load it is set to the number of bytes decoded from the hex `signature_hex` field (`crypto_hex_to_bytes()`). Documented here rather than silently added, per Standing Rule 2/9.
+- `Block` — as specified by the assignment (see REQUIREMENTS.md R2.1), plus one in-memory-only field: `size_t sig_len`, needed because ECDSA signatures are variable-length (see REQUIREMENTS.md ambiguity #4) but the spec's block struct has no length field. This field is **not** persisted or hashed — on load it is set to the number of bytes decoded from the hex `signature_hex` field (`crypto_hex_to_bytes()`).
 - `Blockchain` — singly linked list of `Block`, per the assignment's design guidance (prompt.pdf §5: "design the blockchain as a linked list"), plus a `size_t length` for O(1) length checks and a tail pointer for O(1) append.
 
 ## Data flow
