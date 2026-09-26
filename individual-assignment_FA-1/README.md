@@ -386,15 +386,16 @@ GitHub repository:
 
 ### Demo Video
 
-3–5 minute demonstration covering the required application functionality:
+8 minute demonstration covering the required application functionality:
 
-<YOUR-YOUTUBE-VIDEO-URL>
+<https://youtu.be/JaJVdVHRytU?si=eITR-bCaeq_FolFw>
 
 ### Technical Report
 
-Technical report containing the project design, implementation, security mechanisms, persistence, error handling, screenshots, challenges, and system design diagram:
+Technical report containing the project design, implementation, security mechanisms, persistence, error handling, screenshots, challenges, and system design diagram:-  
 
-<YOUR-TECHNICAL-REPORT-URL>
+
+<https://github.com/Aman-Kasa/blockchain-coursework/blob/main/individual-assignment_FA-1/docs/Individual-Assignment%201-%5BF%3AA%5D(Aman-kasa).pdf>
 
 ---
 
