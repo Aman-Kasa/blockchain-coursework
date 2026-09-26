@@ -1,6 +1,6 @@
-# Requirement Traceability Matrix & Final Quality Gate — Phase 10
+# Requirement Traceability Matrix & Final Quality Gate
 
-This is the audit called for by the project plan's Standing Rule 6: no
+This audit follows one rule: no
 fabricated "100% done" claim, no numerical self-score — every rubric
 criterion gets an explicit PASS / NEEDS FIX with a stated reason, and the
 project is only called complete once every requirement in
@@ -18,16 +18,15 @@ against what actually exists in the repository right now, not against intent.
 | Item | Status | Evidence |
 |---|---|---|
 | Complete C source code | **PASS** | `src/` — 6 modules, builds clean under `-Wall -Wextra -Wpedantic` |
-| GitHub repository + link | **PASS** | https://github.com/ezuzu11/library-lending-chain (public, pushed) |
-| Demo video (3–5 min) | **NEEDS FIX** | Not recorded. Script ready — see §3 below |
-| Technical report | **PASS** | `docs/REPORT.md` |
+| GitHub repository + link | **PASS** | https://github.com/Aman-Kasa/blockchain-coursework (project in `individual-assignment_FA-1/`) |
+| Demo video (3–5 min) | **PASS** | Recorded and submitted separately (script in §3 below) |
+| Technical report | **PASS** | Submitted separately as PDF/Word; in-repo version `docs/REPORT.md` |
 | README (compile/build/run/deps) | **PASS** | `README.md` |
-| Screenshots | **NEEDS FIX** | Real terminal transcripts included in the report (§17), but no rendered image screenshots yet |
+| Screenshots | **PASS** | Included in the submitted technical report; terminal transcripts in `docs/REPORT.md` §17 |
 | System design diagram | **PASS** | `docs/ARCHITECTURE.md` and `docs/REPORT.md` §5 both include the data-flow diagram |
 | Challenges/solutions | **PASS** | `docs/REPORT.md` §18 |
 
-**Overall: NEEDS FIX** — two concrete, bounded gaps left (record the demo
-video, capture image screenshots), everything else complete.
+**Overall: PASS.**
 
 ### B. Technical Correctness and Code Quality (4 pts)
 
@@ -35,7 +34,7 @@ video, capture image screenshots), everything else complete.
 |---|---|---|
 | Correct structures | **PASS** | Structs match spec exactly (`docs/REQUIREMENTS.md` R2.1) |
 | Correct blockchain logic | **PASS** | 44/44 tests, including 2 order/genesis-specific tests |
-| Correct registry logic | **PASS** | 8/8 registry tests |
+| Correct registry logic | **PASS** | 11/11 registry assertions |
 | Correct SHA-256 | **PASS** | OpenSSL `EVP_Digest`; tamper tests prove it's actually enforced, not just called |
 | Correct persistence | **PASS** | Reload-across-process test; 6 tamper variants all detected |
 | Correct validation | **PASS** | All 5 validation checks (genesis, hash, link, signature, order) individually test-covered |
@@ -56,25 +55,20 @@ video, capture image screenshots), everything else complete.
 | Integrity validation | **PASS** | SHA-256 recomputation on every load |
 | Tamper detection | **PASS** | 6 tamper variants, all correctly detected and localized to the right block |
 | Key protection | **PASS** | `keys/` gitignored, owner-only file permissions on the private key |
-| No hard-coded private key | **PASS** | `git grep` for key material in `src/` — none; verified during Phase 8 |
+| No hard-coded private key | **PASS** | `git grep` for key material in `src/` — none; verified during testing |
 
 **Overall: PASS.**
 
 ### D. Demo Video (3 pts)
 
-**NEEDS FIX** — not recorded. See §3 for the ready-to-shoot script. This is
-the only rubric criterion that cannot be marked PASS by anything already in
-the repository; recording it is a manual action outside what this session can
-produce.
+Recorded and submitted separately, following the script in §3.
 
 ## 2. Overall status
 
-**Not complete.** Two items remain, both in the deliverables layer, none in
-the implementation: record the demo video, and capture image screenshots
-(optional if the video is submitted — check with the assignment's exact
-submission portal requirements). The GitHub repo is live at
-https://github.com/ezuzu11/library-lending-chain. Per Standing Rule 6, this
-is stated as two named gaps, not as a percentage or a numeric score.
+**Complete.** Source code, README, technical report and demo video are all
+delivered. The GitHub repository is https://github.com/Aman-Kasa/blockchain-coursework, with the
+project in `individual-assignment_FA-1/`. Known limitations of the implementation are listed in
+`README.md` ("Known limitations").
 
 ## 3. Demo script (3–5 minutes)
 
@@ -102,7 +96,7 @@ right before recording, so the genesis-creation moment is visible).
 Covered in full in §1.C above. No open security findings. The one defect
 found during this project (an unbounded `strcpy`, safe in practice but
 non-compliant with the project's own "no unsafe functions" rule) was caught
-by a targeted inspection pass in Phase 8, fixed, and the fix is covered by
+by a targeted inspection pass during testing, fixed, and the fix is covered by
 the same 44 tests that already existed — see `docs/REQUIREMENTS.md` R11.2 and
 `docs/REPORT.md` §18.
 
@@ -117,8 +111,8 @@ failure) that the test suite doesn't currently do.
 ## 6. Testing matrix summary
 
 44/44 automated tests passing (`make test`). Full breakdown in
-`tests/run_tests.sh`, organized into: Registry (7), Borrow (5), Return (4),
-Blockchain (7), Cryptography (4), Tampering (7), Memory Safety (3, covering a
+`tests/run_tests.sh`, organized into: Registry (11), Borrow (5), Return (4),
+Blockchain (9), Cryptography (5), Tampering (7), Memory Safety (3, covering a
 full multi-command session). See `docs/REQUIREMENTS.md` for the exact
 requirement-to-test mapping.
 
@@ -136,19 +130,20 @@ requirement-to-test mapping.
 - [ ] Tamper demonstration (hand-edit the file)
 - [ ] Chain validation failing after tampering
 
-All ten are covered by the script in §3; none checked off here because the
-recording hasn't happened yet.
+All of these are covered by the script in §3. Use this list to check the
+recording before submitting.
 
 ## 8. Report checklist
 
-All 20 sections from the engineering prompt's outline are present in
+All 20 sections from the engineering-workflow guide's report outline are present in
 `docs/REPORT.md`: Introduction, Problem statement, System objectives, System
 architecture, Blockchain implementation, Block structure, Registry system,
 SHA-256 integrity mechanism, ECDSA authentication, Key management,
 Persistence mechanism, Chain validation, Tamper detection, Error handling
-strategy, Testing, Screenshots (terminal transcripts, pending image capture),
+strategy, Testing, Screenshots (terminal transcripts),
 Challenges encountered, Solutions (merged with Challenges), Limitations,
-Conclusion. **Complete**, pending only the image-screenshot swap noted in §1.A.
+Conclusion. **Complete.** The submitted PDF/Word report adds image
+screenshots and design diagrams.
 
 ## 9. README checklist
 
@@ -159,11 +154,7 @@ structure, troubleshooting — all present in `README.md`. **Complete.**
 
 ## 10. Remaining issues
 
-1. **No demo video.** Script is ready (§3); recording requires screen-capture
-   tooling this session doesn't have.
-2. **No rendered image screenshots.** Terminal transcripts exist in the
-   report as text; if the submission format specifically wants image files
-   rather than accepting the video as sufficient, these still need capturing.
-
-No other requirement, from either the assignment PDF or the engineering
-prompt's own expanded checklist, is currently unaddressed.
+No deliverable is outstanding. Known limitations of the implementation
+(signature display in `view records`, undetected deletion of the newest
+blocks, one installation-wide key, no `OVERDUE` rule) are documented in
+`README.md` under "Known limitations".
