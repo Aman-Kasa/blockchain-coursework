@@ -135,7 +135,7 @@ recording before submitting.
 
 ## 8. Report checklist
 
-All 20 sections from the outline in `prompt.pdf` are present in
+All 20 sections from the engineering-workflow guide's report outline are present in
 `docs/REPORT.md`: Introduction, Problem statement, System objectives, System
 architecture, Blockchain implementation, Block structure, Registry system,
 SHA-256 integrity mechanism, ECDSA authentication, Key management,
