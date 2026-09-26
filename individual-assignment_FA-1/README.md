@@ -145,7 +145,7 @@ and [`docs/REPORT.md`](docs/REPORT.md).
 ## Project structure
 
 ```
-aman/
+individual-assignment_FA-1/
 ├── src/                 main.c, registry, blockchain, crypto, persistence, cli
 ├── data/                books.txt, members.txt (chain.txt is generated, gitignored)
 ├── keys/                ECDSA keypair, generated on first run (gitignored)
