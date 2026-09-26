@@ -40,17 +40,17 @@ members.txt ─► registry.c ─┘            │
 - OpenSSL 3.x development headers (`libssl-dev` on Debian/Ubuntu, `openssl-devel` on Fedora)
 - Bash + `sed`, `python3`, and the `openssl` CLI tool (only for `make test`, not for running the program)
 
-Verified against: gcc, GNU Make, OpenSSL 3.6.4, on Linux.
+Verified on Linux with gcc and GNU Make against OpenSSL 3.6.4 and OpenSSL 3.0.13.
 
 ## Installation & compilation
 
 ```sh
-git clone <this repo>
-cd aman
+git clone https://github.com/Aman-Kasa/blockchain-coursework.git
+cd blockchain-coursework/individual-assignment_FA-1
 make
 ```
 
-This produces a `lending_tracker` binary in the project root. `make clean`
+This produces a `lending_tracker` binary in `individual-assignment_FA-1/` (the project root for everything below). `make clean`
 removes build artifacts.
 
 ## Running
@@ -145,15 +145,30 @@ and [`docs/REPORT.md`](docs/REPORT.md).
 ## Project structure
 
 ```
-aman/
+individual-assignment_FA-1/
 ├── src/                 main.c, registry, blockchain, crypto, persistence, cli
 ├── data/                books.txt, members.txt (chain.txt is generated, gitignored)
 ├── keys/                ECDSA keypair, generated on first run (gitignored)
-├── docs/                REQUIREMENTS.md, ARCHITECTURE.md, REPORT.md
+├── docs/                REQUIREMENTS.md, ARCHITECTURE.md, REPORT.md, TRACEABILITY.md
 ├── tests/               run_tests.sh — the automated test matrix
 ├── Makefile
 └── README.md
 ```
+
+## Known limitations
+
+- `view records` checks each block's signature against the block's *stored*
+  hash. A block whose data was edited but whose stored hash was not changed
+  still shows `signature=VALID` there. Use `validate chain`, which recomputes
+  every hash, to decide whether the chain is intact.
+- Deleting the newest block(s) from the end of `data/chain.txt` is not
+  detected: blocks only link backwards and nothing outside the file records
+  the latest hash or the chain length. Deleting the whole file starts a new chain.
+- One ECDSA key pair per installation, stored unencrypted (mode `0600`) next to
+  the chain. It authenticates the installation, not individual users. There
+  is no login or role-based access control.
+- `OVERDUE` fits in the `action` field but is never produced, because the
+  assignment defines no due-date rule.
 
 ## Troubleshooting
 
