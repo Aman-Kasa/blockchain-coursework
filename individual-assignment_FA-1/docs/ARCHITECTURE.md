@@ -1,89 +1,118 @@
-# Architecture — Phase 2
+# Architecture — Individual Assignment 1
 
-## Project structure
+This document describes the final implementation in `individual-assignment_FA-1/src/`, aligned with the assignment PDF and the delivered code.
 
-```
-aman/
-├── src/
-│   ├── main.c          CLI entry point, command loop
-│   ├── registry.c/.h    Book/Member struct defs, file loading, ID lookup
-│   ├── blockchain.c/.h  Block/chain structs, genesis, append, borrow/return logic, validation
-│   ├── crypto.c/.h      SHA-256 hashing, ECDSA keygen/sign/verify (OpenSSL EVP)
-│   ├── persistence.c/.h Save/load chain to/from disk, corruption detection
-│   └── cli.c/.h         Command parsing, dispatch, user-facing messages
-├── include/             (reserved — currently headers live beside their .c files in src/;
-│                          kept only if a shared cross-module header becomes necessary)
-├── data/
-│   ├── books.txt
-│   └── members.txt
-├── keys/                ECDSA keypair (PEM), generated once, gitignored
-├── tests/               test scripts / fixtures (Phase 8)
-├── docs/                REQUIREMENTS.md, ARCHITECTURE.md, report source
-├── Makefile
-├── README.md
-└── .gitignore
+## 1) Module structure
+
+```text
+src/
+├── main.c         # startup sequence, wiring, lifecycle
+├── registry.c/.h  # book/member registry loading and lookup
+├── blockchain.c/.h# block model, borrow/return logic, validation
+├── crypto.c/.h    # SHA-256 + ECDSA key/sign/verify helpers (OpenSSL EVP)
+├── persistence.c/.h # chain file serialization/deserialization
+└── cli.c/.h       # command parsing and terminal interaction
 ```
 
-**Why each file exists:**
-- `registry.c/h` — isolates "what is a valid book/member" from everything else. Borrow/Return only ever ask this module "does this ID exist, and what's its canonical data" — they never touch the raw files.
-- `crypto.c/h` — isolates OpenSSL usage to one place. If the crypto approach changes (e.g. key format), nothing outside this file needs to change.
-- `blockchain.c/h` — owns the chain's shape and rules: what a block is, how it links to the previous one, what makes the chain valid. Calls into `crypto.c` for hashing/signing but doesn't know how those are implemented.
-- `persistence.c/h` — owns the on-disk format and the load/save/corruption-detection logic, separate from the in-memory chain logic, so tamper detection is a persistence-layer concern the way the assignment frames it (save → external modify → reload → validate → fail).
-- `cli.c/h` — owns command parsing and user-facing text, kept separate from the underlying logic so the same blockchain/registry code could in principle be driven by a different interface without change.
-- `main.c` — wires the above together: load registries → load or create chain → validate → enter command loop.
+Supporting directories:
 
-## Data structures
+- `data/`: `books.txt`, `members.txt`, runtime `chain.txt`
+- `keys/`: runtime-generated `private.pem`, `public.pem`
+- `tests/`: integration-style shell tests (`run_tests.sh`)
 
-- `Book`, `Member` — as specified by the assignment, fixed-size arrays loaded once at startup, not resized at runtime (registries are read-only inputs, not something the program mutates).
-- `Block` — as specified by the assignment (see REQUIREMENTS.md R2.1), plus one in-memory-only field: `size_t sig_len`, needed because ECDSA signatures are variable-length (see REQUIREMENTS.md ambiguity #4) but the spec's block struct has no length field. This field is **not** persisted or hashed — it's derived on load by taking the DER signature up to its own embedded length. Documented here rather than silently added, per Standing Rule 2/9.
-- `Blockchain` — singly linked list of `Block`, per the assignment's design guidance (prompt.pdf §5: "design the blockchain as a linked list"), plus a `size_t length` for O(1) length checks and a tail pointer for O(1) append.
+## 2) Core data structures
 
-## Data flow
+### Registry data (`registry.h`)
+- `Book { book_id, title, author }`
+- `Member { member_id, full_name, course_code }`
+- `Registry` with fixed-size arrays (`MAX_BOOKS`, `MAX_MEMBERS`)
 
+### Blockchain data (`blockchain.h`)
+- `Block` fields include assignment-required chain fields:
+  - `index`, `timestamp`, `book_id`, `book_title`, `member_id`, `member_name`, `action`, `previous_hash`, `signature`, `hash`
+- In-memory-only fields:
+  - `sig_len` (actual DER signature length)
+  - `next` (linked-list pointer)
+- `Blockchain { head, tail, length }`
+
+## 3) Startup and lifecycle flow
+
+`main.c` executes this sequence:
+
+1. Load registries (`data/books.txt`, `data/members.txt`)
+2. Load or create ECDSA keypair (`keys/private.pem`, `keys/public.pem`)
+3. Load chain from `data/chain.txt`
+   - if not found: create and persist genesis block
+   - if parse-corrupt: fail fast
+4. Validate chain cryptographically
+5. Enter CLI loop
+6. Free chain and key resources on exit
+
+## 4) Operation flow
+
+### Borrow
+1. Re-validate chain (`refuse_if_compromised`)
+2. Parse and validate IDs against registries
+3. Reject if book is already on loan
+4. Create block (`BORROWED`), set `previous_hash`
+5. Hash and sign block
+6. Append block and persist chain
+
+### Return
+1. Re-validate chain
+2. Validate `book_id`
+3. Find most recent record for the book
+4. Reject if book is not currently borrowed
+5. Create `RETURNED` block from canonical previous lending info
+6. Hash/sign, append, and persist
+
+## 5) Cryptographic design
+
+- Hash function: SHA-256 (OpenSSL EVP)
+- Signature: ECDSA P-256 (OpenSSL EVP)
+- Hash input serialization order:
+
+```text
+index|timestamp|book_id|book_title|member_id|member_name|action|previous_hash
 ```
-books.txt  ──► load ──► Book[]  ──┐
-                                    ├──► validate IDs ──► Borrow/Return ──► new Block
-members.txt ─► load ──► Member[] ─┘                                          │
-                                                                              ▼
-                                                                    SHA-256 hash + ECDSA sign
-                                                                              │
-                                                                              ▼
-                                                                    append to Blockchain (linked list)
-                                                                              │
-                                                                              ▼
-                                                                    persistence.c writes chain file
-```
 
-On startup: registries load first (borrow/return cannot run without them) → chain file loads if present, else a genesis block is created → the loaded chain is run through Validate Chain immediately, before any command is accepted, so a tampered on-disk file is caught at boot, not just on demand.
+- `hash` stores SHA-256 output as lowercase hex
+- `signature` stores DER bytes (persisted as hex in file)
 
-## Cryptographic flow
+## 6) Validation model
 
-- **Hashed**: all block fields except `signature` and `hash` itself — `index, timestamp, book_id, book_title, member_id, member_name, action, previous_hash`, serialized into one buffer in a fixed field order, then SHA-256'd. This is what `hash` stores.
-- **Signed**: the same hashed buffer (i.e., the block's `hash`) is what gets ECDSA-signed — the signature authenticates "this exact set of block fields, in this exact chain position, was produced by the holder of the private key," not just "this data exists."
-- **Keys**: one ECDSA (P-256) keypair, generated once via OpenSSL and stored as PEM files under `keys/` (private key gitignored, never embedded in source, never printed by the CLI except an explicit debug-only path if one is added later — none is planned).
-- **Why tampering breaks it**: changing any hashed field in a stored block changes what SHA-256 produces for that block, so the stored `hash` no longer matches recomputation (R5.2) — that alone flags tampering. Changing an *earlier* block also breaks every later block's `previous_hash` linkage (R5.3), because each block's `previous_hash` was fixed at append time to the pre-tamper hash of its predecessor. The signature adds a second, independent check (R5.4): even a change that somehow reproduced a matching hash would still fail ECDSA verification against the original signature.
+`blockchain_validate()` checks each block in order:
 
-## Persistence strategy
+1. Index sequence correctness
+2. `previous_hash` linkage correctness
+3. Recomputed SHA-256 equals stored `hash`
+4. Signature verifies against stored `hash`
 
-Plain-text, line-oriented, delimited serialization (not raw struct dumps) — one line per block, fields separated by a delimiter unlikely to appear in the data (`|`), signature stored as hex. Chosen over binary struct writes because:
-- avoids struct padding / endianness / fixed-width-type portability issues entirely (prompt.pdf §6's explicit concern) — the file is readable and portable across machines/compilers without matching struct layout,
-- makes the required tamper-detection demo trivial and legible: a grader can open the file in a text editor, change one visible character, save, and reload — no hex editor needed,
-- keeps `hash`/`previous_hash`/`signature` as plain hex text, matching how they're already handled as C strings in memory.
+The first error is returned with block index and reason.
 
-Format (one block per line):
-```
+## 7) Persistence format and behavior
+
+`persistence_save()` writes one line per block:
+
+```text
 index|timestamp|book_id|book_title|member_id|member_name|action|previous_hash|signature_hex|hash
 ```
 
-On load, each line is split, validated for field count and length limits (R1.8-style defensive parsing extended to the chain file too), and one `Block` is reconstructed per line — a malformed line or a line whose recomputed hash doesn't match is what R5.6/R7.2 report as chain compromise.
+`persistence_load()` validates parse-level integrity (shape/types/lengths) and reconstructs blocks. Cryptographic trust checks are intentionally centralized in `blockchain_validate()` after load.
 
-## Module responsibilities summary
+## 8) Tamper-detection behavior
 
-| Module | Owns | Does not own |
-|---|---|---|
-| registry | Book/Member structs, file loading, ID → record lookup | block/chain logic |
-| crypto | SHA-256, ECDSA keygen/sign/verify | what gets hashed/signed (caller decides) |
-| blockchain | Block/chain structs, genesis, append, borrow/return business rules, validation | file I/O, CLI text |
-| persistence | on-disk format, save, load, corruption detection | chain business rules |
-| cli | command parsing, dispatch, user messages | crypto, file format |
-| main | startup sequence, wiring | everything above |
+- Any edit to hashed fields changes recomputed hash
+- Any edit that breaks lineage causes `previous_hash` mismatch
+- Signature validation provides independent integrity/authenticity check
+- On compromised chain, the CLI still allows inspection (`view`, `validate`) but blocks new writes (`borrow`, `return`)
+
+## 9) Assignment-completion alignment
+
+The implemented architecture satisfies the assignment’s core requirements for:
+- registry-based validation,
+- blockchain record creation and linking,
+- SHA-256 + ECDSA protection,
+- persisted chain reload,
+- validation and tamper reporting,
+- command-line operation.
