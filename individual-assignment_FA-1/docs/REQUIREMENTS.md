@@ -100,7 +100,7 @@ Naming note: the assignment's block table uses `Member_name` and calls this an "
 
 ## Deliverables (Compliance criterion, 4 pts)
 
-- [x] D1 Complete C source code, pushed to a GitHub repo, link included — https://github.com/ezuzu11/library-lending-chain
+- [x] D1 Complete C source code, pushed to a GitHub repo, 
 - [ ] D2 Demo video, 3–5 min — **not recorded** (script ready, see `docs/REPORT.md`)
 - [x] D3 Technical report — `docs/REPORT.md`
 - [x] D4 README — `README.md`
