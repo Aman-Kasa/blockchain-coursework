@@ -1,6 +1,5 @@
 # Library Lending Chain
 
-Repository: https://github.com/ezuzu11/library-lending-chain
 
 A blockchain-backed library book lending tracker written in C. Every borrow and
 return is recorded as a SHA-256-hashed, ECDSA-signed block, chained to the one
