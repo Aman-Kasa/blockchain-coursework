@@ -1,172 +1,409 @@
-# Library Lending Chain
+# Blockchain-Based Library Book Lending Tracker
 
+A C-based blockchain application for tracking library book lending and returns using SHA-256 hashing, ECDSA digital signatures, persistent storage, and blockchain integrity validation.
 
-A blockchain-backed library book lending tracker written in C. Every borrow and
-return is recorded as a SHA-256-hashed, ECDSA-signed block, chained to the one
-before it, so a tampered lending history can be detected instead of quietly
-trusted.
+---
 
-> **Naming note:** the original assignment spec calls this an "attendance
-> chain" in one table and every requirement is actually about book lending —
-> this is leftover wording from a different template. See
-> [`docs/REPORT.md`](docs/REPORT.md) for the full note. This codebase uses
-> "lending chain" throughout.
+## 1. Project Overview
 
-## Features
+This project implements a simple blockchain-based library book lending tracker in C.
 
-- Book and member registries loaded from `data/books.txt` / `data/members.txt`, validated at startup
-- A linked-list blockchain: genesis block, SHA-256-linked blocks, ECDSA (P-256) signatures
-- `borrow` / `return` commands that reject unknown IDs and double-borrows/returns
-- `validate chain` — recomputes every hash, checks every link, verifies every signature
-- Plain-text, human-editable persistence — designed so a single-byte external edit is both easy to demonstrate and reliably detected on reload
-- A CLI that refuses to write new records on top of a chain that's already been found compromised
+The application records book borrowing and returning activities as blocks in a linked-list blockchain. Each block is protected using cryptographic hashing and digital signatures, while the blockchain validates the integrity of its records.
 
-## Architecture
+The application supports:
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full design (module
-responsibilities, data flow, cryptographic flow, persistence format). In short:
+* Loading book and member registries
+* Borrowing books
+* Returning books
+* Viewing lending records
+* Validating the blockchain
+* Detecting tampering
+* Persistent blockchain storage
+* SHA-256 hashing
+* ECDSA digital signatures
+* Automated testing
 
-```
-books.txt ──► registry.c ──┐
-                             ├──► blockchain.c ──► crypto.c (SHA-256 + ECDSA)
-members.txt ─► registry.c ─┘            │
-                                         ▼
-                                  persistence.c ──► data/chain.txt
-```
+This is an educational, single-machine blockchain implementation and does not implement networking, mining, or distributed consensus.
 
-## Requirements
+---
 
-- GCC (or another C11 compiler) and GNU Make
-- OpenSSL 3.x development headers (`libssl-dev` on Debian/Ubuntu, `openssl-devel` on Fedora)
-- Bash + `sed`, `python3`, and the `openssl` CLI tool (only for `make test`, not for running the program)
+## 2. Project Structure
 
-Verified against: gcc, GNU Make, OpenSSL 3.6.4, on Linux.
-
-## Installation & compilation
-
-```sh
-git clone <this repo>
-cd aman
-make
-```
-
-This produces a `lending_tracker` binary in the project root. `make clean`
-removes build artifacts.
-
-## Running
-
-```sh
-./lending_tracker
-```
-
-Run it from the project root — it expects `data/books.txt` and
-`data/members.txt` to exist there, and will create `data/chain.txt` and a
-`keys/` ECDSA keypair on first run if they don't already exist.
-
-## CLI commands
-
-| Command | Effect |
-|---|---|
-| `borrow <book_id> <member_id>` | Record a book as borrowed |
-| `return <book_id>` | Record a book as returned |
-| `view records` | Show every block on the chain, with signature validity |
-| `validate chain` | Recompute hashes/links/signatures; report VALID or COMPROMISED |
-| `list books` | Show the book registry |
-| `list members` | Show the member registry |
-| `chain status` | One-line block count + validity |
-| `help` | Show the command list |
-| `exit` | Quit |
-
-Example session:
-
-```
-> borrow BK001 ALU001
-OK: BK001 borrowed by ALU001 (block 1 recorded).
-> borrow BK001 ALU002
-ERROR: this book is already on loan
-> return BK001
-OK: BK001 returned (block 2 recorded).
-> validate chain
-Chain status: 3 block(s), VALID
-```
-
-## Test procedure
-
-```sh
-make test
-```
-
-Runs `tests/run_tests.sh`: 44 automated assertions across registry loading,
-borrow, return, blockchain validation, cryptography, tampering, and a full
-AddressSanitizer/UndefinedBehaviorSanitizer session — each test runs in its
-own throwaway sandbox directory, so nothing touches the real `data/`/`keys/`.
-
-`make asan` builds a sanitizer-instrumented binary directly, if you want to
-run your own session under it (`./lending_tracker`, then check stderr).
-
-## Tamper-detection procedure
-
-This is the core security demonstration the assignment requires. To reproduce
-it manually:
-
-1. `make && ./lending_tracker`, then `borrow BK001 ALU001`, `exit`.
-2. Open `data/chain.txt` in a text editor. Each line is one block:
-   `index|timestamp|book_id|book_title|member_id|member_name|action|previous_hash|signature_hex|hash`
-3. Change one visible character in the second line's `book_title` field (e.g. "Things Fall Apart" → "Xhings Fall Apart"). Save.
-4. `./lending_tracker`, then `validate chain`.
-
-Expected result: a `WARNING: chain integrity check FAILED` on startup, and
-`Chain status: N block(s), COMPROMISED` with the exact block index and reason
-(`stored hash does not match recomputed hash`) from `validate chain`. A
-subsequent `borrow` or `return` is refused with an explicit error rather than
-silently appending onto the broken chain.
-
-`tests/run_tests.sh`'s Tampering section automates six variants of this
-(block-data edit, stored-hash edit, previous_hash edit, a genuine
-single-external-byte flip via a small Python snippet, a corrupted signature
-with the hash untouched, and a wrong public key).
-
-## Cryptographic design
-
-- **Hashing**: SHA-256 over every block field except `signature` and `hash`
-  itself (`index, timestamp, book_id, book_title, member_id, member_name,
-  action, previous_hash`), via OpenSSL's `EVP_Digest`.
-- **Signing**: the resulting hash is ECDSA-signed (P-256 curve) via
-  `EVP_DigestSign`, using a keypair generated once and stored as PEM under
-  `keys/` (gitignored — never committed, never embedded in source, never
-  printed).
-- **Verification**: `EVP_DigestVerify` against the stored public key.
-  Verification never fails open — any error path is treated as "invalid."
-
-Full rationale, including exactly why tampering with an earlier block breaks
-every later block's link, is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-and [`docs/REPORT.md`](docs/REPORT.md).
-
-## Project structure
-
-```
-individual-assignment_FA-1/
-├── src/                 main.c, registry, blockchain, crypto, persistence, cli
-├── data/                books.txt, members.txt (chain.txt is generated, gitignored)
-├── keys/                ECDSA keypair, generated on first run (gitignored)
-├── docs/                REQUIREMENTS.md, ARCHITECTURE.md, REPORT.md
-├── tests/               run_tests.sh — the automated test matrix
+```text
+.
+├── data/
+│   ├── books.txt
+│   ├── members.txt
+│   └── chain.txt
+│
+├── keys/
+│   ├── private.pem
+│   └── public.pem
+│
+├── src/
+│   ├── main.c
+│   ├── registry.c
+│   ├── registry.h
+│   ├── blockchain.c
+│   ├── blockchain.h
+│   ├── crypto.c
+│   ├── crypto.h
+│   ├── persistence.c
+│   ├── persistence.h
+│   ├── cli.c
+│   └── cli.h
+│
+├── tests/
+│   └── ...
+│
 ├── Makefile
 └── README.md
 ```
 
-## Troubleshooting
+---
 
-- **`fatal error: openssl/evp.h: No such file or directory`** — install
-  OpenSSL development headers (see Requirements above), not just the runtime library.
-- **`FATAL: could not load registries`** — run the binary from the project
-  root, or confirm `data/books.txt` / `data/members.txt` exist and aren't empty.
-- **`WARNING: chain integrity check FAILED` on a chain you didn't intend to
-  tamper with** — the persisted `data/chain.txt` or `keys/public.pem` was
-  edited or replaced since the chain was written. Restore from git or delete
-  `data/chain.txt` to start a fresh chain (this also invalidates prior
-  history — that's the point).
-- **Permission denied writing to `keys/`** — the private key file is created
-  with owner-only permissions (`chmod 600`); if it already exists with
-  different ownership (e.g. copied from another machine), fix its
-  permissions or delete it to regenerate.
+## 3. Requirements
+
+The project requires:
+
+* Linux / POSIX-compatible operating system
+* GCC
+* GNU Make
+* OpenSSL 3
+* OpenSSL development libraries
+
+### Ubuntu / Pop!_OS
+
+Install the required dependencies:
+
+```bash
+sudo apt update
+sudo apt install build-essential libssl-dev
+```
+
+Check the installations:
+
+```bash
+gcc --version
+make --version
+openssl version
+```
+
+---
+
+## 4. Compilation
+
+Clone the repository:
+
+```bash
+git clone <YOUR-GITHUB-REPOSITORY-URL>
+```
+
+Enter the project directory:
+
+```bash
+cd <PROJECT-DIRECTORY>
+```
+
+Build the application:
+
+```bash
+make
+```
+
+The compiled executable will be generated by the project's Makefile.
+
+---
+
+## 5. Running the Application
+
+Run the application with:
+
+```bash
+./build/library-chain
+```
+
+On startup, the application loads the required registries and existing blockchain data before starting the command-line interface.
+
+---
+
+## 6. Registry Data
+
+The application uses two registry files.
+
+### Books
+
+```text
+data/books.txt
+```
+
+### Members
+
+```text
+data/members.txt
+```
+
+The application validates book and member IDs against these registries before recording lending transactions.
+
+---
+
+## 7. Available Commands
+
+### Borrow a Book
+
+```text
+borrow <book_id> <member_id>
+```
+
+Example:
+
+```text
+borrow BK001 ALU001
+```
+
+### Return a Book
+
+```text
+return <book_id>
+```
+
+Example:
+
+```text
+return BK001
+```
+
+### View Records
+
+```text
+view
+```
+
+or:
+
+```text
+view records
+```
+
+### Validate the Blockchain
+
+```text
+validate
+```
+
+or:
+
+```text
+validate chain
+```
+
+or:
+
+```text
+chain status
+```
+
+### List Books
+
+```text
+list books
+```
+
+### List Members
+
+```text
+list members
+```
+
+### Display Help
+
+```text
+help
+```
+
+### Exit
+
+```text
+exit
+```
+
+or:
+
+```text
+quit
+```
+
+---
+
+## 8. Blockchain
+
+Each lending or return operation is recorded as a block.
+
+The blockchain uses:
+
+* A genesis block
+* Sequential block indexes
+* Timestamps
+* Previous-block hashes
+* SHA-256 hashing
+* ECDSA digital signatures
+* Linked-list block storage
+
+The blockchain can be validated at any time using:
+
+```text
+validate chain
+```
+
+If a previous block is modified, the stored hash will no longer match the recomputed hash, allowing the application to detect the tampering.
+
+---
+
+## 9. Security
+
+The project uses:
+
+### SHA-256
+
+SHA-256 is used to generate a cryptographic hash for each block.
+
+### ECDSA
+
+ECDSA with the NIST P-256 curve is used to digitally sign blocks.
+
+The project stores the cryptographic keys in:
+
+```text
+keys/private.pem
+keys/public.pem
+```
+
+The private key should **never be committed to GitHub**.
+
+The `keys/private.pem` file should therefore be excluded through `.gitignore`.
+
+---
+
+## 10. Data Persistence
+
+The blockchain is stored in:
+
+```text
+data/chain.txt
+```
+
+This allows the blockchain to remain available after the application exits.
+
+When the application starts again, the saved chain can be loaded and validated.
+
+---
+
+## 11. Tamper Detection
+
+The application can demonstrate blockchain integrity protection.
+
+A basic demonstration is:
+
+1. Create valid blockchain records.
+2. Run:
+
+```text
+validate chain
+```
+
+3. Modify a previous record in:
+
+```text
+data/chain.txt
+```
+
+4. Restart the application.
+5. Run:
+
+```text
+validate chain
+```
+
+The application detects that the modified block no longer matches its stored cryptographic hash.
+
+The application also prevents new records from being added when the existing chain fails integrity validation.
+
+---
+
+## 12. Testing
+
+Run the project's automated tests with:
+
+```bash
+make test
+```
+
+The implementation was tested for:
+
+* Registry validation
+* Borrow operations
+* Return operations
+* Blockchain creation
+* Blockchain validation
+* Persistence
+* Hash tampering
+* Signature validation
+* Invalid input
+* Error handling
+* Memory safety
+
+The completed test suite achieved:
+
+```text
+44 passed
+0 failed
+```
+
+Memory-safety testing was also performed using AddressSanitizer and UndefinedBehaviorSanitizer.
+
+---
+
+## 13. Main Source Modules
+
+| File            | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `main.c`        | Application startup and initialization     |
+| `registry.c`    | Book and member registry management        |
+| `blockchain.c`  | Blockchain and lending operations          |
+| `crypto.c`      | SHA-256 and ECDSA cryptographic operations |
+| `persistence.c` | Blockchain saving and loading              |
+| `cli.c`         | Command-line interface                     |
+
+---
+
+## 14. Assignment Deliverables
+
+### Source Code
+
+GitHub repository:
+
+<YOUR-GITHUB-REPOSITORY-URL>
+
+### Demo Video
+
+3–5 minute demonstration covering the required application functionality:
+
+<YOUR-YOUTUBE-VIDEO-URL>
+
+### Technical Report
+
+Technical report containing the project design, implementation, security mechanisms, persistence, error handling, screenshots, challenges, and system design diagram:
+
+<YOUR-TECHNICAL-REPORT-URL>
+
+---
+
+## 15. Author
+
+**Aman Abraha Kasa**
+
+African Leadership University
+Introduction to Blockchain Development
+Individual Assignment 1
+
+September 2026
