@@ -402,9 +402,5 @@ Technical report containing the project design, implementation, security mechani
 ## 15. Author
 
 **Aman Abraha Kasa**
-
-African Leadership University
-Introduction to Blockchain Development
-Individual Assignment 1
-
-September 2026
+September 26, 2026
+lastbagtime
