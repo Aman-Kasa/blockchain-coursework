@@ -3,7 +3,7 @@
 ## Project structure
 
 ```
-aman/
+Individual-assignemetn_FA-1/
 ├── src/
 │   ├── main.c          CLI entry point, command loop
 │   ├── registry.c/.h    Book/Member struct defs, file loading, ID lookup
