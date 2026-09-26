@@ -1,6 +1,6 @@
 # Requirements Checklist
 
-Source of truth: `individual assignment.pdf` (graded spec + rubric). `prompt.pdf` (engineering workflow) cross-checked against it — where they conflict, the assignment PDF wins (it is the graded document).
+Source of truth: `individual assignment.pdf` (graded spec + rubric). A separate engineering-workflow guide was cross-checked against it — where they conflict, the assignment PDF wins (it is the graded document).
 
 Naming note: the assignment's block table uses `Member_name` and calls this an "attendance chain" — both are leftover template wording. This checklist and the implementation use `member_name` and "lending chain" throughout. See `docs/REPORT.md` §4 for the full note.
 
