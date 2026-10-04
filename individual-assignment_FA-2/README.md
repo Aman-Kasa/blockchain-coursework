@@ -1,6 +1,6 @@
 # Formative 2 – Library Lending Chain with Token Rewards and Mining
 
-This extends the Formative 1 Library Book Lending Tracker ([ndividual-assignment_FA-1).](https://github.com/Aman-Kasa/blockchain-coursework/tree/main/individual-assignment_FA-1).
+This extends the Formative 1 Library Book Lending Tracker ([individual-assignment_FA-1).](https://github.com/Aman-Kasa/blockchain-coursework/tree/main/individual-assignment_FA-1).
 Borrowing and returning books now feed a **pending pool**. Returning a book creates a
 **token reward transaction**. Nothing reaches the chain until it is **mined with proof of work**,
 using solo, pool or cloud mining. Member balances are kept under the **UTXO** or the
@@ -21,7 +21,7 @@ There are no other libraries.
 ## 2. Build and run
 
 ```bash
-cd formative-2
+cd individual-assignment_FA-2
 make                     # builds ./lending_tracker
 ./lending_tracker        # asks which transaction model to use
 ```
