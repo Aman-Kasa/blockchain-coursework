@@ -1,0 +1,14 @@
+# build output
+/build/
+/library_chain
+*.o
+
+# runtime state (recreated by the program)
+/data/*.dat
+
+# private key material - never commit
+/keys/*
+!/keys/.gitkeep
+
+.DS_Store
+*.swp
