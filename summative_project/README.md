@@ -11,6 +11,17 @@ mining, UTXO and account ledgers, solo/pool/cloud mining), and adds the summativ
 - misuse and fraud detection with a manual review workflow;
 - full disk persistence with re-validation on every start.
 
+## Submission deliverables
+
+| Deliverable | Link |
+|---|---|
+| Demo video (YouTube) | [youtu.be/ZojWApYIyjM](https://youtu.be/ZojWApYIyjM) |
+| Technical report with system design diagrams (PDF) | [docs/Aman_Kasa_Technical_Report.pdf](docs/Aman_Kasa_Technical_Report.pdf) |
+| Source code | [`src/`](src/) |
+| Test suite | [`tests/`](tests/) (`make test`: 91 checks) |
+
+Author: Aman Abraha Kasa, African Leadership University. Introduction to Blockchain Development, 2026 September Term.
+
 ---
 
 ## 1. Dependencies
