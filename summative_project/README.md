@@ -16,7 +16,7 @@ mining, UTXO and account ledgers, solo/pool/cloud mining), and adds the summativ
 | Deliverable | Link |
 |---|---|
 | Demo video (YouTube) | [youtu.be/ZojWApYIyjM](https://youtu.be/ZojWApYIyjM) |
-| Technical report with system design diagrams (PDF) | [docs/Aman_Kasa_Technical_Report.pdf](docs/Aman_Kasa_Technical_Report.pdf) |
+| Technical report with system design diagrams (PDF) | [docs/Aman_Kasa_Technical_Report(Summative).pdf](docs/Aman_Kasa_Technical_Report%28Summative%29.pdf) |
 | Source code | [`src/`](src/) |
 | Test suite | [`tests/`](tests/) (`make test`: 91 checks) |
 
