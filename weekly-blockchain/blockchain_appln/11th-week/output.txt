@@ -1,0 +1,54 @@
+##### task1_hash
+File:    original_work.py
+SHA-256: 83187274d3c8227cbef28d39d8b53e9446e1b77889b1b493653b37ba90df388d
+##### task2_timestamp
+File hash:        83187274d3c8227cbef28d39d8b53e9446e1b77889b1b493653b37ba90df388d
+Owner:            Aman Abraha Kasa
+Block number:     1
+Transaction hash: 000075dccb63b3f0dc8d58f014ce3c6c2688a33b9fee00e91717a6aba9f352c9
+Previous hash:    00003e992f17b44da46e6be4a4a3dbf927969217a415822828f5f9ec06ef44e7
+Timestamp (UTC):  2026-11-09T07:52:57.338322+00:00
+##### task3_tamper
+Change made:   'a, b = 0, 1'  ->  'a, b = 1, 1'  (1 character)
+Original hash: 83187274d3c8227cbef28d39d8b53e9446e1b77889b1b493653b37ba90df388d
+Modified hash: 1247f7b583afd21b93e4fedfcec8ab9d7baf7f20a2f38e5cb891921abcdad862
+Identical?     False
+Bits differing: 125 / 256 (49%) -> avalanche effect
+##### task4_verify
+
+=== Verifying original_work.py ===
+[1] Chain integrity check: chain is valid
+[2] Recomputed SHA-256 of 'original_work.py': 83187274d3c8227cbef28d39d8b53e9446e1b77889b1b493653b37ba90df388d
+[3] MATCH in block 1 (tx 000075dccb63b3f0...)
+    Registered by Aman Abraha Kasa at 2026-11-09T07:52:57.338322+00:00
+    VERDICT: file is ORIGINAL and unaltered.
+
+=== Verifying modified_work.py ===
+[1] Chain integrity check: chain is valid
+[2] Recomputed SHA-256 of 'modified_work.py': 1247f7b583afd21b93e4fedfcec8ab9d7baf7f20a2f38e5cb891921abcdad862
+[3] NO MATCH on chain.
+    VERDICT: file has been ALTERED (or was never registered).
+
+=== Attacker edits the owner name inside block 1 ===
+Chain check: block 1 contents were altered
+##### task5_license
+1. Aman registers the work
+  [block 1] WorkRegistered: {'file_hash': '83187274d3c8...', 'owner': 'Aman'}
+2. Aman licenses it to StudioX for 30 days
+  [block 2] AccessGranted: {'user': 'StudioX', 'seconds': 2592000}
+3. StudioX requests access (day 1)
+  [block 3] AccessRequested: {'requester': 'StudioX', 'granted': True}
+4. Unlicensed user Bob tries to access
+  [block 4] AccessRequested: {'requester': 'Bob', 'granted': False}
+5. A court/verifier checks the hash
+  [block 5] VerificationRequested: {'requester': 'Court', 'registered': True}
+6. 31 days later, StudioX tries again (license expired)
+  [block 6] AccessRequested: {'requester': 'StudioX', 'granted': False}
+7. Bob tries to make Bob the licensee himself
+  rejected: Not the owner
+
+Audit log of every access attempt:
+  block 3: StudioX  granted=True
+  block 4: Bob      granted=False
+  block 6: StudioX  granted=False
+Chain check: chain is valid
